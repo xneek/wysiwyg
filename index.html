@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>wysiwyg easy</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="toolbar">
+         <a href="#" action="undo"> &#8630;</a>
+         <a href="#" action="redo">&#8631;</a>
+         <span>|</span>
+         <a href="#" action="bold"><b>B</b></a>
+         <a href="#" action="italic"><em>I</em></a>
+         <a href="#" action="underline">U</a>
+         <span>|</span>
+         <a href="#" action="justifyLeft">left</a>
+         <a href="#" action="justifyCenter">center</a>
+         <a href="#" action="justifyRight">right</a>
+         <a href="#" action="justifyFull">justify</a>
+         <span>|</span>
+         <a href="#" action="insertUnorderedList">ul</a>
+         <a href="#" action="insertOrderedList">ol</a>
+         <span>|</span>
+         <a href="#" action="createLink">A</a><a href="#" action="insertImage">img</a>
+		 <span>|</span>
+         <a href="#" action="removeFormat">X</a>
+    </div>
+    <div contenteditable id="editor"></div>
+    <script src="eWysiwyg.js"></script>
+     <script>
+        var editor = new EWysiwyg(document.getElementById("editor"), document.getElementById("toolbar"));
+        editor.init({
+			
+			/*	
+				linkInput:  function( selectedRange, callback ){
+					* selectedRange - what is selected before call this function
+					* callback - function(domEl) // domEl it is link (DOM node) what do you want insert into editor
+				}
+				imageInput: function( callback ){
+					* callback - function(domEl) // domEl it is image (DOM node) what do you want insert into editor
+				}
+			
+			*/
+			
+			// For example insertLink
+			// You can use UI element, and call callback function on click on any button
+			linkInput: function(txt, cb){
+				var a,b, link;
+				
+				a = prompt('Input link address','http://')
+				b = prompt('Input text from link',txt)
+				
+				link = document.createElement('a');
+				link.href = a;
+				link.appendChild(document.createTextNode(b));
+				
+				cb(link);
+				
+			}
+			
+			
+			
+		});
+     </script>
+</body>
+</html>
