@@ -1,0 +1,18 @@
+{
+	"name": "eWysiwyg",
+	"description": "Very simple tool to tighten wysiwyg controls to conteneditable area. Dependency free",
+	"keywords": ["wysiwyg", "js"],
+	"main": [
+		"eWysiwyg.js"
+	],
+	"ignore": [
+		"bower.json",
+		"README.md",
+		"**/*.html",
+		"index.html",
+		"style.css",
+		".git"
+	],
+	"dependencies": {},
+	"devDependencies": {}
+}
