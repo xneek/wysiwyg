@@ -23,44 +23,31 @@
          <a href="#" action="insertUnorderedList">ul</a>
          <a href="#" action="insertOrderedList">ol</a>
          <span>|</span>
-         <a href="#" action="createLink">A</a><a href="#" action="insertImage">img</a>
+         <a href="#" action="insertLink">A</a><a href="#" action="insertImage">img</a>
 		 <span>|</span>
          <a href="#" action="removeFormat">X</a>
     </div>
     <div contenteditable id="editor"></div>
+	
+	
+	<div id="inserter"></div>
+	
+	
     <script src="eWysiwyg.js"></script>
      <script>
         var editor = new EWysiwyg(document.getElementById("editor"), document.getElementById("toolbar"));
         editor.init({
-			
-			/*	
-				linkInput:  function( selectedRange, callback ){
-					* selectedRange - what is selected before call this function
-					* callback - function(domEl) // domEl it is link (DOM node) what do you want insert into editor
-				}
-				imageInput: function( callback ){
-					* callback - function(domEl) // domEl it is image (DOM node) what do you want insert into editor
-				}
-			
-			*/
-			
-			// For example insertLink
-			// You can use UI element, and call callback function on click on any button
-			linkInput: function(txt, cb){
-				var a,b, link;
-				
-				a = prompt('Input link address','http://')
-				b = prompt('Input text from link',txt)
-				
-				link = document.createElement('a');
-				link.href = a;
-				link.appendChild(document.createTextNode(b));
-				
-				cb(link);
-				
+			"insertLink": function(callback, txt, nodes){
+
+						var link = document.createElement('a');
+						link.href = prompt('Адрес ссылки','http://ya.ru');
+						if(txt.length==0){ link.appendChild(document.createTextNode(prompt('Текст ссылки','яндекс'))) } else {
+							link.appendChild(document.createTextNode(txt))
+						}
+						callback(link);
+
 			}
-			
-			
+
 			
 		});
      </script>

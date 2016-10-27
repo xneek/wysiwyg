@@ -1,118 +1,122 @@
 ; "use strict";
 /*EWysiwyg*/
-EWysiwyg = (function(window){
-	var IE = '\v' == 'v';
+function EWysiwyg( editor, toolbar ){
 
-	
-	
-	function addHTML(el) {
-		var sel, range;
+	var IE = '\v' == 'v';
+	this._getSelection = function() {
 		if (window.getSelection) {
 			sel = window.getSelection();
 			if (sel.getRangeAt && sel.rangeCount) {
-				range = sel.getRangeAt(0);
-				range.deleteContents();
-				range.insertNode(el);
-				range = range.cloneRange();
-				range.setStartAfter(el);
-				range.collapse(true);
-				sel.removeAllRanges();
-				sel.addRange(range);	
+				return sel.getRangeAt(0);
 			}
-		} else if (document.selection && document.selection.type != "Control") {
-			document.selection.createRange().pasteHTML(el.outerHTML);
+		} else if (document.selection && document.selection.createRange) {
+			return document.selection.createRange();
+		}
+		return null;
+	}
+
+	this._restoreSelection = function(range) {
+		if (range) {
+			if (window.getSelection) {
+				sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			} else if (document.selection && range.select) {
+				range.select();
+			}
 		}
 	}
 	
+	this.pasteHTML = function(el) {
+		var sel, range, zwsp = document.createTextNode("\u200B")
+		if (window.getSelection) {
+			var selection = window.getSelection();
+			if (selection.getRangeAt && selection.rangeCount ) {
+			  var selection = window.getSelection();
+			  var range = selection.getRangeAt(0);
 
-	var callAction = function(cmd, params){
-	
+				if(range && range.startContainer.parentNode == editor){
 
-	
-		switch(cmd){
-			case 'createLink':
+					range.deleteContents();
+					range.insertNode(el);
+					range.setStartAfter(el);
+					range.setEndAfter(el);
+					selection.removeAllRanges();
+					selection.addRange(range);
 
-				if(params && params.linkInput){
-					params.linkInput( (IE ? window.selection.createRange() : window.getSelection().getRangeAt(0)), function(el){ addHTML(el); })
 				} else {
-					var s = prompt('Enter link','http://');
-					var link = document.createElement('a');
-						link.href= s;
-						link.appendChild(document.createTextNode(s));
-						addHTML(link);
+					editor.appendChild(el)
 				}
+			  return false;
+			} else {
+				editor.appendChild(el)
+			}
+		} else if (document.selection && document.selection.type != "Control") {
+		alert(1)
+			document.selection.createRange().pasteHTML(el.outerHTML);
+		} else {
+			console.log('selection no found')
+		}
+	}
 
-			break;
-			
-			case 'insertImage':
+	this.callAction = function(cmd, customEvents){
+		var th = this;
+		if(customEvents && customEvents[cmd] && typeof(customEvents[cmd]) === 'function'){
+			this.selection = this._getSelection();
+			customEvents[cmd](function(el){
+				th._restoreSelection(th.selection);
+				th.pasteHTML(el);
+			}, this.selection?this.selection.toString():'', this.selection?this.selection.cloneContents():[])
+		} else {
+			document.execCommand(cmd, false, null);
+		}
+	}
 
-				if(params && params.imageInput){
-					params.imageInput(function(el){ addHTML(el); })
-				} else {
-					var s = prompt('Enter image url','http://');
-					var img = document.createElement('img');
-						img.src= s; img.alt = "img";
-						addHTML(img);
+	this.selection = function(){
+		return _getSelection();
+	},
+	this.init = function(params){
+		var th = this;
+		if(editor){
+			editor.contentEditable = true;
+			// Activation paste Images from clipboard
+			editor.addEventListener( 'paste',  function(e){
+				if(typeof e.clipboardData != 'undefined') {
+				var copiedData = e.clipboardData.items[0];
+				if(copiedData.type.indexOf("image") == 0){
+				  var imageFile = copiedData.getAsFile(); 
+				  var reader = new FileReader();
+				  reader.onload = function (evt) {
+					var result = evt.target.result;
+					var img = document.createElement("img");
+						img.src = result;
+						th.pasteHTML(img);
+					};
+					reader.readAsDataURL(imageFile);
+				}
+			  }
+			}, false);
+		}
+		
+		if(toolbar){
+			var toolbarA = toolbar.getElementsByTagName('a');
+			for( var i = 0, l = toolbarA.length; i<l; i++){
+				if(toolbarA[i].hasAttribute('action')){
+				  if(IE){
+					toolbarA[i].attachEvent( 'onclick', function(event){
+						if (event.preventDefault) { event.preventDefault(); } else { event.returnValue = false; }
+						th.callAction(this.getAttribute('action'), params);
+					});
+				  } else {
+					toolbarA[i].addEventListener( 'click',  function(event){
+						if (event.preventDefault) { event.preventDefault(); } else { event.returnValue = false; }
+						th.callAction(this.getAttribute('action'), params);
+					}, false);
+				  }
 				}
 				
-			break;			
-			
-			default:
-			document.execCommand(cmd, false, null);
+			}
 		}
 		
 	}
-	
-	
-	return function(editor, toolbar){
-		this.selection = function(){
-			return selection();
-		},
-		this.init = function(params){
-			
-			if(editor){
-				editor.contentEditable = true;
-				
-				// Activation paste Images from clipboard
-				editor.addEventListener( 'paste',  function(e){
-					if(typeof e.clipboardData != 'undefined') {
-					var copiedData = e.clipboardData.items[0];
-					if(copiedData.type.indexOf("image") == 0){
-					  var imageFile = copiedData.getAsFile(); 
-					  var reader = new FileReader();
-					  reader.onload = function (evt) {
-						var result = evt.target.result;
-						var img = document.createElement("img");
-							img.src = result;
-							addHTML(img);
-						};
-						reader.readAsDataURL(imageFile);
-					}
-				  }
-				}, false);
-			}
-			if(toolbar){
-				var toolbarA = toolbar.getElementsByTagName('a');
-				for( var i = 0, l = toolbarA.length; i<l; i++){
-					if(toolbarA[i].hasAttribute('action')){
-					  if(IE){
-						toolbarA[i].attachEvent( 'onclick', function(event){
-							if (event.preventDefault) { event.preventDefault(); } else { event.returnValue = false; }
-							callAction(this.getAttribute('action'), params);
-						});
-					  } else {
-						toolbarA[i].addEventListener( 'click',  function(event){
-							if (event.preventDefault) { event.preventDefault(); } else { event.returnValue = false; }
-							callAction(this.getAttribute('action'), params);
-						}, false);
-					  }
-					}
-					
-				}
-			}
-			
-		}
-	
-	}
-
-})(window)
+};
