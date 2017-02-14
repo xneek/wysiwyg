@@ -83,7 +83,7 @@ function EWysiwyg( editor, toolbar ){
 			editor.addEventListener( 'paste',  function(e){
 				if(typeof e.clipboardData != 'undefined') {
 				var copiedData = e.clipboardData.items[0];
-				if(copiedData.type.indexOf("image") == 0){
+				if(copiedData && copiedData.type && copiedData.type.indexOf("image") == 0){
 				  var imageFile = copiedData.getAsFile(); 
 				  var reader = new FileReader();
 				  reader.onload = function (evt) {
